@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "lib": ["deno.ns", "deno.unstable", "dom"],
+    "strict": true,
+    "jsx": "react-jsx"
+  },
+  "imports": {
+    "std/server": "https://deno.land/std@0.190.0/http/server.ts",
+    "supabase": "npm:@supabase/supabase-js@2",
+    "stripe": "npm:stripe@18.5.0"
+  }
+}

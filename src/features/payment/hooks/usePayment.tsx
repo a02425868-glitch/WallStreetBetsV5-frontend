@@ -122,13 +122,37 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
 
   const startCheckout = async () => {
     try {
-      // Redirect to Stripe payment link
-      window.location.href = "https://buy.stripe.com/test_28E7sL2Cf4ne4Hc7Aa4wM00";
+      if (!session) {
+        toast({
+          title: 'Not authenticated',
+          description: 'Please sign in first',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // Call Edge Function to create checkout session
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (!data?.url) {
+        throw new Error('No checkout URL returned');
+      }
+
+      // Redirect to Stripe checkout
+      window.location.href = data.url;
     } catch (err) {
       console.error('Error starting checkout:', err);
       toast({
         title: 'Checkout failed',
-        description: 'Please try again',
+        description: err instanceof Error ? err.message : 'Please try again',
         variant: 'destructive',
       });
     }

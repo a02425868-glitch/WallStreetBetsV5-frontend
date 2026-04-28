@@ -2,6 +2,3 @@ name = "wallstreetbetsv5-frontend"
 compatibility_date = "2026-04-26"
 pages_build_output_dir = "dist"
 
-[build.environment]
-VITE_SUPABASE_URL = "https://pwuwhmnhlaqfyxpswgtn.supabase.co"
-VITE_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_UzV4h0kGINkEEyZu2LS8Ow_Qvnx4Z46"

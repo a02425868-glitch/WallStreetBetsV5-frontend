@@ -29,7 +29,7 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
 
     try {
       // Fast path: check the local profile first
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('has_paid')
         .eq('user_id', user.id)
@@ -41,15 +41,29 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
         return;
       }
 
+      // If backend schema doesn't exist yet, skip payment check
+      if (profileError?.code === 'PGRST116' || profileError?.code === '404') {
+        console.warn('Payment backend not yet deployed. Defaulting to free tier.');
+        setHasPaid(false);
+        setLoading(false);
+        return;
+      }
+
       // Slow path: verify with Stripe via edge function
       const { data, error } = await supabase.functions.invoke('check-payment', {
         body: {},
       });
 
-      if (error) throw error;
+      if (error) {
+        console.warn('Payment service unavailable. Defaulting to free tier.', error);
+        setHasPaid(false);
+        setLoading(false);
+        return;
+      }
+
       setHasPaid(data?.has_paid ?? false);
     } catch (err) {
-      console.error('Error checking payment:', err);
+      console.warn('Error checking payment (backend may not be deployed):', err);
       setHasPaid(false);
     } finally {
       setLoading(false);
@@ -72,7 +86,6 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
   const applyPromoCode = async (code: string): Promise<{ success: boolean; error?: string }> => {
     try {
       if (!user) {
-        console.error('No user logged in');
         return { success: false, error: 'Not logged in' };
       }
 
@@ -84,8 +97,13 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
         p_email: user.email ?? '',
       });
 
+      // Backend not deployed yet
+      if (error?.code === 'PGRST116' || error?.code === '42883') {
+        return { success: false, error: 'Promo codes not yet available (backend pending deployment)' };
+      }
+
       if (error) {
-        console.error('Redeem promo code error:', error);
+        console.warn('Redeem promo code error:', error);
         return { success: false, error: 'Failed to apply promo code' };
       }
 
@@ -96,7 +114,7 @@ export function PaymentProvider({ children }: { children: ReactNode }) {
       setHasPaid(true);
       return { success: true };
     } catch (err) {
-      console.error('Promo code error:', err);
+      console.warn('Promo code error:', err);
       const errMsg = err instanceof Error ? err.message : 'Failed to apply promo code';
       return { success: false, error: errMsg };
     }

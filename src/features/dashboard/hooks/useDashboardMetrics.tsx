@@ -69,13 +69,14 @@ export function useDashboardMetrics() {
         const rows = (byTicker.get(ticker) ?? []).sort(
           (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
         );
-        const latestWithPrice = rows.find((row) => row.price != null) ?? rows[0];
-        if (!latestWithPrice) continue;
+        const latestRow = rows[0];
+        const latestWithPrice = rows.find((row) => row.price != null);
+        if (!latestRow) continue;
 
         metrics.push({
           ticker,
-          latestPrice: latestWithPrice.price,
-          latestTimestamp: latestWithPrice.timestamp,
+          latestPrice: latestWithPrice?.price ?? null,
+          latestTimestamp: latestRow.timestamp,
           metrics_1h: calculateTimeframeMetrics(getMetricsSince(rows, 1)),
           metrics_12h: calculateTimeframeMetrics(getMetricsSince(rows, 12)),
           metrics_24h: calculateTimeframeMetrics(getMetricsSince(rows, 24)),

@@ -175,7 +175,8 @@ export function AdvancedMetricsChart({
     }
     const latest = [...aggregatedData]
       .reverse()
-      .find((point) => point.total > 0 || point.bullish + point.bearish > 0)
+      .find((point) => point.bullish + point.bearish > 0)
+      ?? [...aggregatedData].reverse().find((point) => point.total > 0)
       ?? aggregatedData[aggregatedData.length - 1];
     const total = latest.bullish + latest.bearish;
     

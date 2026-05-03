@@ -2,6 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import {
+  fetchTrackedLeaderboard,
   fetchTrackedTickers,
   fetchTrendsMetrics,
   type TrendsMetricRpcRow,
@@ -47,6 +48,8 @@ export function useDashboardMetrics() {
     queryKey: ['dashboard-metrics-v2'],
     queryFn: async () => {
       const tracked = await fetchTrackedTickers(200);
+      const leaderboard = await fetchTrackedLeaderboard(200);
+      const leaderboardByTicker = new Map(leaderboard.map((row) => [row.ticker, row]));
       const tickers = tracked.map((row) => row.ticker).filter(Boolean);
       if (tickers.length === 0) return [] as DashboardMetrics[];
 
@@ -66,20 +69,38 @@ export function useDashboardMetrics() {
 
       const metrics: DashboardMetrics[] = [];
       for (const ticker of tickers) {
+        const boardRow = leaderboardByTicker.get(ticker);
         const rows = (byTicker.get(ticker) ?? []).sort(
           (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
         );
         const latestRow = rows[0];
         const latestWithPrice = rows.find((row) => row.price != null);
-        if (!latestRow) continue;
+        if (!latestRow && !boardRow) continue;
+
+        const calculated24h = calculateTimeframeMetrics(getMetricsSince(rows, 24));
+        const leaderboard24h: TimeframeMetrics | null = boardRow
+          ? {
+              total: boardRow.mentions_24h ?? calculated24h.total,
+              bullish: boardRow.bullish_mentions_24h ?? calculated24h.bullish,
+              bearish: boardRow.bearish_mentions_24h ?? calculated24h.bearish,
+              neutral: Math.max(
+                0,
+                (boardRow.mentions_24h ?? calculated24h.total)
+                  - (boardRow.bullish_mentions_24h ?? calculated24h.bullish)
+                  - (boardRow.bearish_mentions_24h ?? calculated24h.bearish)
+              ),
+              ratio: boardRow.sentiment_ratio_24h ?? calculated24h.ratio,
+              aiScore: boardRow.latest_ai_score ?? calculated24h.aiScore,
+            }
+          : null;
 
         metrics.push({
           ticker,
-          latestPrice: latestWithPrice?.price ?? null,
-          latestTimestamp: latestRow.timestamp,
+          latestPrice: boardRow?.latest_price ?? latestWithPrice?.price ?? null,
+          latestTimestamp: boardRow?.updated_at_utc ?? latestRow?.timestamp ?? new Date().toISOString(),
           metrics_1h: calculateTimeframeMetrics(getMetricsSince(rows, 1)),
           metrics_12h: calculateTimeframeMetrics(getMetricsSince(rows, 12)),
-          metrics_24h: calculateTimeframeMetrics(getMetricsSince(rows, 24)),
+          metrics_24h: leaderboard24h ?? calculated24h,
           metrics_48h: calculateTimeframeMetrics(getMetricsSince(rows, 48)),
           metrics_7d: calculateTimeframeMetrics(getMetricsSince(rows, 24 * 7)),
           metrics_30d: calculateTimeframeMetrics(getMetricsSince(rows, 24 * 30)),

@@ -74,7 +74,7 @@ interface AlertHistoryRow {
   triggered_at: string;
   threshold: number | null;
   direction: 'above' | 'below' | null;
-  value: number | null;
+  triggered_value: number | null;
 }
 
 export function useTickerAlerts() {
@@ -102,7 +102,7 @@ export function useTickerAlerts() {
       if (!user) return [] as AlertHistoryEntry[];
       const { data, error } = await supabase
         .from('notifications_history')
-        .select('id,user_id,ticker,type,triggered_at,threshold,direction,value')
+        .select('id,user_id,ticker,type,triggered_at,threshold,direction,triggered_value')
         .eq('user_id', user.id)
         .order('triggered_at', { ascending: false })
         .limit(100);
@@ -115,7 +115,7 @@ export function useTickerAlerts() {
         triggered_at: row.triggered_at,
         threshold: row.threshold,
         direction: row.direction,
-        value: row.value,
+        value: row.triggered_value,
       }));
     },
     enabled: Boolean(user),
@@ -160,7 +160,7 @@ export function useTickerAlerts() {
           type: entry.type,
           threshold: entry.threshold ?? null,
           direction: entry.direction ?? null,
-          value: entry.value ?? null,
+          triggered_value: entry.value ?? null,
         });
       if (error) throw error;
     },

@@ -78,7 +78,7 @@ export type Database = {
           triggered_at: string
           threshold: number | null
           direction: string | null
-          value: number | null
+          triggered_value: number | null
         }
         Insert: {
           id?: string
@@ -88,7 +88,7 @@ export type Database = {
           triggered_at?: string
           threshold?: number | null
           direction?: string | null
-          value?: number | null
+          triggered_value?: number | null
         }
         Update: {
           id?: string
@@ -98,7 +98,7 @@ export type Database = {
           triggered_at?: string
           threshold?: number | null
           direction?: string | null
-          value?: number | null
+          triggered_value?: number | null
         }
         Relationships: []
       }

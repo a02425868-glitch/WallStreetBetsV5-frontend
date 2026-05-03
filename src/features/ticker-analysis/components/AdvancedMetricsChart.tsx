@@ -37,67 +37,54 @@ interface AggregatedPoint {
   aiConfidence: number | null; // 0-100 scale
 }
 
-// Get aggregation factor (how many 15-min points to group)
-function getAggregationFactor(interval: IntervalWindow | undefined): number {
-  if (!interval) return 48; // Default to 12h (48 * 15min = 720min = 12h)
-  const factors: Record<IntervalWindow, number> = {
-    '15m': 1,
-    '30m': 2,
-    '1h': 4,
-    '3h': 12,
-    '6h': 24,
-    '12h': 48,
+function getIntervalMinutes(interval: IntervalWindow | undefined): number {
+  const minutes: Record<IntervalWindow, number> = {
+    '15m': 15,
+    '30m': 30,
+    '1h': 60,
+    '3h': 180,
+    '6h': 360,
+    '12h': 720,
   };
-  return factors[interval] || 48;
+  return interval ? minutes[interval] : minutes['12h'];
 }
 
-// Aggregate by grouping consecutive points with proper UTC timestamps
+function formatBucketLabel(bucketStartMs: number) {
+  return new Date(bucketStartMs).toLocaleString('en-US', {
+    month: 'numeric',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+    timeZone: 'UTC',
+  });
+}
+
+// Aggregate canonical 15-minute rows into UTC-aligned chart buckets.
 function aggregateData(
   rawPoints: TrendsMetricsRow[],
-  factor: number
+  interval: IntervalWindow | undefined
 ): AggregatedPoint[] {
-  // Filter out rows with invalid timestamps
-  const validPoints = rawPoints.filter((p) => {
-    if (!p || !p.timestamp) return false;
-    const date = new Date(p.timestamp);
-    return !Number.isNaN(date.getTime());
-  });
+  const bucketMs = getIntervalMinutes(interval) * 60 * 1000;
+  const buckets = new Map<number, TrendsMetricsRow[]>();
 
-  if (validPoints.length === 0) {
-    return [];
-  }
-
-  if (factor === 1) {
-    return validPoints.map((p) => {
-      const date = new Date(p.timestamp);
-      const bullish = p.bullish_mentions ?? 0;
-      const bearish = p.bearish_mentions ?? 0;
-      const neutral = p.neutral_mentions ?? 0;
-      const total = bullish + bearish;
-      return {
-        time: Math.floor(date.getTime() / 1000) as UTCTimestamp,
-        label: date.toLocaleString('en-US', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }),
-        total: p.total_mentions ?? 0,
-        bullish,
-        bearish,
-        neutral,
-        price: p.price ?? null,
-        bullishPercentage: total > 0 ? (bullish / total) * 100 : null,
-        aiConfidence: p.ai_score ?? null,
-      };
-    });
-  }
-
-  const aggregated: AggregatedPoint[] = [];
-  for (let i = 0; i < validPoints.length; i += factor) {
-    const bucket = validPoints.slice(i, i + factor);
-    if (bucket.length === 0 || !bucket[0]) {
+  for (const point of rawPoints) {
+    if (!point?.timestamp) {
       continue;
     }
-    const firstDate = new Date(bucket[0].timestamp);
-    if (Number.isNaN(firstDate.getTime())) {
+    const timestampMs = new Date(point.timestamp).getTime();
+    if (Number.isNaN(timestampMs)) {
       continue;
     }
+    const bucketStartMs = Math.floor(timestampMs / bucketMs) * bucketMs;
+    const bucket = buckets.get(bucketStartMs) ?? [];
+    bucket.push(point);
+    buckets.set(bucketStartMs, bucket);
+  }
+
+  return Array.from(buckets.entries())
+    .sort(([a], [b]) => a - b)
+    .map(([bucketStartMs, bucket]) => {
     const total = bucket.reduce((sum, p) => sum + (p.total_mentions ?? 0), 0);
     const bullish = bucket.reduce((sum, p) => sum + (p.bullish_mentions ?? 0), 0);
     const bearish = bucket.reduce((sum, p) => sum + (p.bearish_mentions ?? 0), 0);
@@ -106,9 +93,9 @@ function aggregateData(
     const confidences = bucket.filter((p) => p.ai_score != null).map((p) => p.ai_score!);
     const sentimentTotal = bullish + bearish;
 
-    aggregated.push({
-      time: Math.floor(firstDate.getTime() / 1000) as UTCTimestamp,
-      label: firstDate.toLocaleString('en-US', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }),
+    return {
+      time: Math.floor(bucketStartMs / 1000) as UTCTimestamp,
+      label: formatBucketLabel(bucketStartMs),
       total,
       bullish,
       bearish,
@@ -116,9 +103,8 @@ function aggregateData(
       price: prices.length > 0 ? prices.reduce((a, b) => a + b) / prices.length : null,
       bullishPercentage: sentimentTotal > 0 ? (bullish / sentimentTotal) * 100 : null,
       aiConfidence: confidences.length > 0 ? confidences.reduce((a, b) => a + b) / confidences.length : null,
-    });
-  }
-  return aggregated;
+    };
+  });
 }
 
 export function AdvancedMetricsChart({
@@ -170,15 +156,23 @@ export function AdvancedMetricsChart({
     // Sort by timestamp to ensure proper aggregation
     allRawPoints.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
 
-    const factor = getAggregationFactor(timeWindow);
-    const aggregated = aggregateData(allRawPoints, factor);
+    const aggregated = aggregateData(allRawPoints, timeWindow);
 
     return aggregated;
   }, [metricsData, selectedTickers, timeWindow]);
 
   // Update sentiment
   useEffect(() => {
-    if (aggregatedData.length === 0) return;
+    if (aggregatedData.length === 0) {
+      setSentiment({
+        direction: 'neutral',
+        bullishCount: 0,
+        bearishCount: 0,
+        totalMentions: 0,
+        momentum: 'stable',
+      });
+      return;
+    }
     const latest = aggregatedData[aggregatedData.length - 1];
     const total = latest.bullish + latest.bearish;
     
@@ -191,15 +185,15 @@ export function AdvancedMetricsChart({
       else if (change < -previous.total * 0.1) momentum = 'falling';
     }
     
-    if (total > 0) {
-      setSentiment({
-        direction: latest.bullish > latest.bearish ? 'bullish' : latest.bearish > latest.bullish ? 'bearish' : 'neutral',
-        bullishCount: latest.bullish,
-        bearishCount: latest.bearish,
-        totalMentions: latest.total,
-        momentum,
-      });
-    }
+    setSentiment({
+      direction: total > 0
+        ? latest.bullish > latest.bearish ? 'bullish' : latest.bearish > latest.bullish ? 'bearish' : 'neutral'
+        : 'neutral',
+      bullishCount: latest.bullish,
+      bearishCount: latest.bearish,
+      totalMentions: latest.total,
+      momentum,
+    });
   }, [aggregatedData]);
 
   // Initialize chart once on mount
@@ -358,7 +352,7 @@ export function AdvancedMetricsChart({
           metrics.push(`<div style="display: flex; align-items: center; gap: 6px; padding: 2px 0;"><span style="color: ${SENTIMENT_COLORS.price}; font-size: 12px; filter: drop-shadow(0 0 2px rgba(59, 130, 246, 0.5));">&bull;</span><span style="color: #cbd5e1; min-width: 75px; font-size: 10px; text-shadow: 0 1px 2px rgba(0,0,0,0.8);">Price</span><span style="color: #f1f5f9; font-weight: 600; font-size: 11px; text-shadow: 0 1px 2px rgba(0,0,0,0.8);">$${data.price.toFixed(2)}</span></div>`);
         }
         if (visibleMetricsRef.current.has('ai_score') && data.aiConfidence !== null) {
-          metrics.push(`<div style="display: flex; align-items: center; gap: 6px; padding: 2px 0;"><span style="color: #f59e0b; font-size: 12px; filter: drop-shadow(0 0 2px rgba(245, 158, 11, 0.5));">&bull;</span><span style="color: #cbd5e1; min-width: 75px; font-size: 10px; text-shadow: 0 1px 2px rgba(0,0,0,0.8);">AI Confidence</span><span style="color: #f1f5f9; font-weight: 600; font-size: 11px; text-shadow: 0 1px 2px rgba(0,0,0,0.8);">${data.aiConfidence.toFixed(1)}</span></div>`);
+          metrics.push(`<div style="display: flex; align-items: center; gap: 6px; padding: 2px 0;"><span style="color: #f59e0b; font-size: 12px; filter: drop-shadow(0 0 2px rgba(245, 158, 11, 0.5));">&bull;</span><span style="color: #cbd5e1; min-width: 75px; font-size: 10px; text-shadow: 0 1px 2px rgba(0,0,0,0.8);">AI Score</span><span style="color: #f1f5f9; font-weight: 600; font-size: 11px; text-shadow: 0 1px 2px rgba(0,0,0,0.8);">${data.aiConfidence.toFixed(1)}</span></div>`);
         }
         
         html += metrics.join('');
@@ -728,7 +722,7 @@ export function AdvancedMetricsChart({
               minMove: 0.01,
             },
           });
-          line.setData(aggregatedData.filter((d) => d.price).map((d) => ({ time: d.time, value: d.price! })));
+          line.setData(aggregatedData.filter((d) => d.price != null).map((d) => ({ time: d.time, value: d.price! })));
           seriesMapRef.current.set('price', line);
         } else if (style === 'points') {
           const line = chart.addHistogramSeries({ 
@@ -741,7 +735,7 @@ export function AdvancedMetricsChart({
               minMove: 0.01,
             },
           });
-          line.setData(aggregatedData.filter((d) => d.price).map((d) => ({ time: d.time, value: d.price! })));
+          line.setData(aggregatedData.filter((d) => d.price != null).map((d) => ({ time: d.time, value: d.price! })));
           seriesMapRef.current.set('price', line);
         } else if (style === 'markers') {
           const line = chart.addLineSeries({ 
@@ -759,7 +753,7 @@ export function AdvancedMetricsChart({
             pointMarkersVisible: true,
             pointMarkersRadius: 3
           });
-          line.setData(aggregatedData.filter((d) => d.price).map((d) => ({ time: d.time, value: d.price! })));
+          line.setData(aggregatedData.filter((d) => d.price != null).map((d) => ({ time: d.time, value: d.price! })));
           seriesMapRef.current.set('price', line);
         } else {
           const line = chart.addLineSeries({ 
@@ -775,7 +769,7 @@ export function AdvancedMetricsChart({
             },
             lineStyle: style === 'dotted' ? LineStyle.Dotted : style === 'dashed' ? LineStyle.Dashed : LineStyle.Solid
           });
-          line.setData(aggregatedData.filter((d) => d.price).map((d) => ({ time: d.time, value: d.price! })));
+          line.setData(aggregatedData.filter((d) => d.price != null).map((d) => ({ time: d.time, value: d.price! })));
           seriesMapRef.current.set('price', line);
         }
       }

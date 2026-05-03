@@ -93,7 +93,7 @@ function getMetrics(data: DashboardMetrics, timeframe: TimeframeKey): TimeframeM
 }
 
 function formatValue(metric: MetricType, value: number | null): string {
-  if (value === null || value === undefined) return '-';
+  if (value === null || value === undefined) return 'N/A';
   if (metric === 'ratio') return value.toFixed(2);
   if (metric === 'aiScore') return value.toFixed(0);
   return value.toLocaleString();
@@ -354,7 +354,7 @@ export function TickerLeaderboard() {
                     </TableCell>
                     {showPrice && (
                       <TableCell className="font-mono text-muted-foreground">
-                        {item.latestPrice != null ? `$${item.latestPrice.toFixed(2)}` : '-'}
+                        {item.latestPrice != null ? `$${item.latestPrice.toFixed(2)}` : 'N/A'}
                       </TableCell>
                     )}
                     {selectedColumns.map((col) => {

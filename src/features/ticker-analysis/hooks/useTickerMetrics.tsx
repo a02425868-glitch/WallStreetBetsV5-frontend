@@ -49,7 +49,9 @@ export function useTickerMetrics(tickers: string[], intervalWindow: IntervalWind
 
     const rows = await fetchTrendsMetrics({
       tickers,
-      interval: intervalWindow,
+      // Charts aggregate client-side from canonical 15-minute buckets. Asking
+      // the API for larger buckets here causes the chart to aggregate twice.
+      interval: '15m',
       lookbackHours: DEFAULT_RANGE_HOURS,
       sessionMode: 'full',
     });
@@ -65,7 +67,7 @@ export function useTickerMetrics(tickers: string[], intervalWindow: IntervalWind
     }
 
     return result;
-  }, [tickers, intervalWindow]);
+  }, [tickers]);
 
   const query = useQuery({
     queryKey: ['ticker-metrics-v2', tickersKey, intervalWindow],

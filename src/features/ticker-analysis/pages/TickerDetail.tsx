@@ -50,7 +50,7 @@ export default function TickerDetail() {
         bearishMentions: 0,
         neutralMentions: 0,
         sentimentPercentage: 50,
-        aiScore: 0,
+        aiScore: null as number | null,
       };
     }
 
@@ -66,7 +66,7 @@ export default function TickerDetail() {
     const validScores = tickerData.filter(row => row.ai_score != null);
     const aiScore = validScores.length > 0 
       ? validScores.reduce((sum, row) => sum + (row.ai_score ?? 0), 0) / validScores.length 
-      : 0;
+      : null;
 
     return {
       totalMentions,
@@ -151,7 +151,12 @@ export default function TickerDetail() {
           <StatCard label="Bearish" value={timeframeMetrics.bearishMentions} icon={TrendingUp} color="text-terminal-red" />
           <StatCard label="Neutral" value={timeframeMetrics.neutralMentions} icon={BarChart3} color="text-terminal-yellow" />
           <StatCard label="Sentiment" value={`${timeframeMetrics.sentimentPercentage.toFixed(0)}%`} icon={Zap} color="text-terminal-cyan" />
-          <StatCard label="AI Score" value={`${timeframeMetrics.aiScore.toFixed(0)}%`} icon={Brain} color="text-terminal-purple" />
+          <StatCard
+            label="AI Score"
+            value={timeframeMetrics.aiScore != null ? `${timeframeMetrics.aiScore.toFixed(0)}%` : 'N/A'}
+            icon={Brain}
+            color="text-terminal-purple"
+          />
         </div>
 
         {/* Stock Price (if available) */}

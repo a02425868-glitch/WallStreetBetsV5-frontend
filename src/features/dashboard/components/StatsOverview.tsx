@@ -52,7 +52,7 @@ export function StatsOverview() {
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-bold flex items-center gap-2">
                 <TrendingUp className="h-4 w-4 text-terminal-yellow" />
-                Top 3 Trending Tickers
+                Top 3 Active Tickers
               </CardTitle>
               <div 
                 className="relative"
@@ -62,7 +62,7 @@ export function StatsOverview() {
                 <Info className="h-4 w-4 text-muted-foreground cursor-help hover:text-foreground transition-colors" />
                 {showVelocityTooltip && (
                   <div className="absolute right-0 top-6 bg-foreground text-background text-xs rounded py-2 px-3 whitespace-nowrap z-10 shadow-lg">
-                    Scored by hourly mention velocity
+                    Uses 1h mentions when active; otherwise falls back to 24h volume
                     <div className="absolute bottom-full right-2 border-4 border-transparent border-b-foreground" />
                   </div>
                 )}

@@ -13,8 +13,12 @@ export function useHourlyMentionVelocity() {
     queryKey: ['hourly-mention-velocity-v2'],
     queryFn: async () => {
       const rows = await fetchTrackedLeaderboard(200);
+      const hasHourlyActivity = rows.some((row) => (row.mentions_1h ?? 0) > 0);
       return rows
-        .map((row) => ({ ticker: row.ticker, mentionCount: row.mentions_1h ?? 0 }))
+        .map((row) => ({
+          ticker: row.ticker,
+          mentionCount: hasHourlyActivity ? row.mentions_1h ?? 0 : row.mentions_24h ?? 0,
+        }))
         .sort((a, b) => b.mentionCount - a.mentionCount);
     },
     staleTime: 30_000,

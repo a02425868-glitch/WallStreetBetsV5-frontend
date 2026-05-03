@@ -1,11 +1,7 @@
 import { supabase } from '@/shared/integrations/supabase/client';
 
-type RpcError = { message: string } | null;
-type RpcCall = (fn: string, args?: Record<string, unknown>) => Promise<{ data: unknown; error: RpcError }>;
-
 async function rpcRows<T>(fn: string, args?: Record<string, unknown>): Promise<T[]> {
-  const rpc = supabase.rpc as unknown as RpcCall;
-  const { data, error } = await rpc(fn, args);
+  const { data, error } = await supabase.rpc(fn, args ?? {});
   if (error) {
     throw new Error(error.message);
   }

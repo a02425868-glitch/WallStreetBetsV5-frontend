@@ -29,11 +29,14 @@ export default function TickerDetail() {
   const { data: metricsData, loading: metricsLoading } = useTickerMetrics(
     ticker ? [ticker] : [], intervalWindow
   );
+  const { data: summaryMetricsData } = useTickerMetrics(
+    ticker ? [ticker] : [], '12h'
+  );
   const { items: feedItems, loading: feedLoading } = useLiveFeed(ticker);
 
   // Calculate aggregated metrics from the selected timeframe - MUST be before any returns
   const timeframeMetrics = useMemo(() => {
-    let tickerData = metricsData[ticker] || [];
+    let tickerData = summaryMetricsData[ticker] || [];
     
     // Filter data by timeframe range
     const timeframeHours = TIMEFRAME_HOURS_BY_RANGE[timeframeRange];
@@ -73,7 +76,7 @@ export default function TickerDetail() {
       sentimentPercentage,
       aiScore,
     };
-  }, [metricsData, ticker, timeframeRange]);
+  }, [summaryMetricsData, ticker, timeframeRange]);
 
   if (loading) {
     return (

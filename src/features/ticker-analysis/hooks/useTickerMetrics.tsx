@@ -25,6 +25,22 @@ export const TIMEFRAME_HOURS_BY_RANGE: Record<TimeframeRange, number> = {
 
 const DEFAULT_RANGE_HOURS = 720;
 
+interface TrendSourceWindow {
+  sourceInterval: IntervalWindow;
+  lookbackHours: number;
+}
+
+const TREND_SOURCE_BY_WINDOW: Record<IntervalWindow, TrendSourceWindow> = {
+  // Supabase REST caps RPC result sets at 1000 rows for this project. Keep each
+  // request under that cap while preserving enough granularity for chart buckets.
+  '15m': { sourceInterval: '15m', lookbackHours: 24 },
+  '30m': { sourceInterval: '15m', lookbackHours: 72 },
+  '1h': { sourceInterval: '15m', lookbackHours: 168 },
+  '3h': { sourceInterval: '15m', lookbackHours: 168 },
+  '6h': { sourceInterval: '30m', lookbackHours: 336 },
+  '12h': { sourceInterval: '1h', lookbackHours: DEFAULT_RANGE_HOURS },
+};
+
 function mapTrendRow(row: TrendsMetricRpcRow): TrendsDataRow {
   return {
     ticker: row.ticker,
@@ -47,12 +63,11 @@ export function useTickerMetrics(tickers: string[], intervalWindow: IntervalWind
       return {} as Record<string, TrendsMetricsRow[]>;
     }
 
+    const sourceWindow = TREND_SOURCE_BY_WINDOW[intervalWindow];
     const rows = await fetchTrendsMetrics({
       tickers,
-      // Charts aggregate client-side from canonical 15-minute buckets. Asking
-      // the API for larger buckets here causes the chart to aggregate twice.
-      interval: '15m',
-      lookbackHours: DEFAULT_RANGE_HOURS,
+      interval: sourceWindow.sourceInterval,
+      lookbackHours: sourceWindow.lookbackHours,
       sessionMode: 'full',
     });
 
@@ -67,7 +82,7 @@ export function useTickerMetrics(tickers: string[], intervalWindow: IntervalWind
     }
 
     return result;
-  }, [tickers]);
+  }, [tickers, intervalWindow]);
 
   const query = useQuery({
     queryKey: ['ticker-metrics-v2', tickersKey, intervalWindow],

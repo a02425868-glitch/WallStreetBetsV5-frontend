@@ -23,7 +23,7 @@ export function ScoreGauge({ score, label, size = 'md', className }: ScoreGaugeP
     return (
       <div className={cn('flex items-center gap-2 min-w-[80px]', className)}>
         <span className={cn('font-mono font-bold text-sm tabular-nums', colors.text)}>
-          {score !== null ? displayScore : 'â€“'}
+          {score !== null ? displayScore : '-'}
         </span>
         <div className="flex-1 h-1.5 bg-muted/50 rounded-full overflow-hidden">
           <div
@@ -81,7 +81,7 @@ export function ScoreGauge({ score, label, size = 'md', className }: ScoreGaugeP
           colors.text,
           displayScore >= 70 && 'text-glow-green'
         )}>
-          {score !== null ? displayScore : 'â€“'}
+          {score !== null ? displayScore : '-'}
         </span>
       </div>
       {label && (

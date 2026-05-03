@@ -118,7 +118,7 @@ export default function Auth() {
                 <Input
                   id="password"
                   type="password"
-                  placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                  placeholder="********"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="pl-9 bg-muted border-border"

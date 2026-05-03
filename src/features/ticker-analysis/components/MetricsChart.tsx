@@ -237,7 +237,7 @@ export function MetricsChart({
       stats.set(lineKey, { mean, std });
     });
 
-    // Z-score normalize: mean â†’ 0.5, Â±2 stddev â†’ 0/1
+    // Z-score normalize: mean maps to 0.5, +/-2 stddev maps near 0/1.
     const sorted = Array.from(timeMap.entries())
       .map(([ts, values]) => {
         const scaled: Record<string, number> = {};
@@ -252,7 +252,7 @@ export function MetricsChart({
             return;
           }
           const z = (val - s.mean) / s.std; // z-score
-          // Map z-score to 0-1 range: mean=0.5, clamp to ~Â±3 std
+          // Map z-score to 0-1 range: mean=0.5, clamped near +/-3 std.
           scaled[lineKey] = Math.max(0, Math.min(1, 0.5 + z * 0.25));
         });
         return { timestamp: ts, label: formatTimestamp(ts, timeWindow), ...scaled };
@@ -426,7 +426,7 @@ export function MetricsChart({
                 const start = new Date(closestTime * 1000);
                 const end = new Date(start.getTime() + bucketMins * 60 * 1000);
                 const header = bucketMins > 15
-                  ? `${start.toLocaleString()} â€” ${end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+                  ? `${start.toLocaleString()} - ${end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
                   : start.toLocaleString();
                 const relativeTime = formatRelativeTime(new Date(data.timestamp));
                 let html = `<div style="margin-bottom: 8px; color: #d0d0d0; font-size: 11px; font-family: sans-serif;">
@@ -437,7 +437,7 @@ export function MetricsChart({
                 lineConfigsRef.current.forEach(line => {
                   if (!visibleLinesRef.current.has(line.key)) return;
                   const val = data.values[line.key] ?? 0;
-                  const formatted = typeof val === 'number' ? val.toFixed(2) : 'â€”';
+                  const formatted = typeof val === 'number' ? val.toFixed(2) : '-';
                   const isHovered = line.key === closestLineKey ? 'font-weight: bold; opacity: 1;' : 'opacity: 0.8;';
                   html += `<div style="color: ${line.color}; margin: 4px 0; ${isHovered}">
                     <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background-color: ${line.color}; margin-right: 6px; vertical-align: middle;"></span>
@@ -557,7 +557,7 @@ export function MetricsChart({
               <TrendingUp className="h-4 w-4 text-primary" />
               Trends
             </CardTitle>
-            <p className="text-xs text-muted-foreground mt-1">Each metric scaled independently â€” hover for actual values</p>
+            <p className="text-xs text-muted-foreground mt-1">Each metric scaled independently - hover for actual values</p>
           </div>
           <Button
             variant="outline"

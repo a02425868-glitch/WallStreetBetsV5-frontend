@@ -10,7 +10,7 @@ interface PriceChangeProps {
 
 export function PriceChange({ value, showSign = true, showIcon = true, className }: PriceChangeProps) {
   if (value === null) {
-    return <span className={cn('text-muted-foreground font-mono', className)}>â€“</span>;
+    return <span className={cn('text-muted-foreground font-mono', className)}>-</span>;
   }
 
   const isPositive = value > 0;

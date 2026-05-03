@@ -85,14 +85,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const handleOnline = () => {
       if (isMounted) {
         setIsOnline(true);
-        console.log('Network connection restored');
       }
     };
 
     const handleOffline = () => {
       if (isMounted) {
         setIsOnline(false);
-        console.log('Network connection lost');
       }
     };
 

@@ -145,8 +145,6 @@ export function AdvancedMetricsChart({
     totalMentions: 0, 
     momentum: 'stable' as 'rising' | 'falling' | 'stable' 
   });
-  const [debugInfo, setDebugInfo] = useState({ rawCount: 0, aggCount: 0, rawInterval: '?', factor: 1 });
-
   // Keep a ref in sync with visibleMetrics for the tooltip handler
   useEffect(() => {
     visibleMetricsRef.current = visibleMetrics;
@@ -172,28 +170,8 @@ export function AdvancedMetricsChart({
     // Sort by timestamp to ensure proper aggregation
     allRawPoints.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
 
-    // Detect raw interval
-    let rawInterval = '?';
-    if (allRawPoints.length > 1) {
-      const t1 = new Date(allRawPoints[0]!.timestamp).getTime();
-      const t2 = new Date(allRawPoints[1]!.timestamp).getTime();
-      const diffMs = t2 - t1;
-      const diffMins = Math.round(diffMs / 60000);
-      rawInterval = `${diffMins}m`;
-    }
-
     const factor = getAggregationFactor(timeWindow);
     const aggregated = aggregateData(allRawPoints, factor);
-
-
-
-    setDebugInfo({
-      rawCount: allRawPoints.length,
-      aggCount: aggregated.length,
-      rawInterval,
-      factor,
-    });
-
 
     return aggregated;
   }, [metricsData, selectedTickers, timeWindow]);
@@ -227,7 +205,6 @@ export function AdvancedMetricsChart({
   // Initialize chart once on mount
   useEffect(() => {
     if (!chartRef.current || chartInstanceRef.current) {
-      console.log('[AdvancedMetricsChart] Chart already exists or ref not ready');
       return;
     }
 
@@ -363,25 +340,25 @@ export function AdvancedMetricsChart({
         
         const metrics = [];
         if (visibleMetricsRef.current.has('total_mentions')) {
-          metrics.push(`<div style="display: flex; align-items: center; gap: 6px; padding: 2px 0;"><span style="color: #06b6d4; font-size: 12px; filter: drop-shadow(0 0 2px rgba(6, 182, 212, 0.5));">â—</span><span style="color: #cbd5e1; min-width: 75px; font-size: 10px; text-shadow: 0 1px 2px rgba(0,0,0,0.8);">Total</span><span style="color: #f1f5f9; font-weight: 600; font-size: 11px; text-shadow: 0 1px 2px rgba(0,0,0,0.8);">${data.total}</span></div>`);
+          metrics.push(`<div style="display: flex; align-items: center; gap: 6px; padding: 2px 0;"><span style="color: #06b6d4; font-size: 12px; filter: drop-shadow(0 0 2px rgba(6, 182, 212, 0.5));">&bull;</span><span style="color: #cbd5e1; min-width: 75px; font-size: 10px; text-shadow: 0 1px 2px rgba(0,0,0,0.8);">Total</span><span style="color: #f1f5f9; font-weight: 600; font-size: 11px; text-shadow: 0 1px 2px rgba(0,0,0,0.8);">${data.total}</span></div>`);
         }
         if (visibleMetricsRef.current.has('bullish_mentions')) {
-          metrics.push(`<div style="display: flex; align-items: center; gap: 6px; padding: 2px 0;"><span style="color: ${SENTIMENT_COLORS.bullish}; font-size: 12px; filter: drop-shadow(0 0 2px rgba(34, 197, 94, 0.5));">â—</span><span style="color: #cbd5e1; min-width: 75px; font-size: 10px; text-shadow: 0 1px 2px rgba(0,0,0,0.8);">Bullish</span><span style="color: #f1f5f9; font-weight: 600; font-size: 11px; text-shadow: 0 1px 2px rgba(0,0,0,0.8);">${data.bullish}</span></div>`);
+          metrics.push(`<div style="display: flex; align-items: center; gap: 6px; padding: 2px 0;"><span style="color: ${SENTIMENT_COLORS.bullish}; font-size: 12px; filter: drop-shadow(0 0 2px rgba(34, 197, 94, 0.5));">&bull;</span><span style="color: #cbd5e1; min-width: 75px; font-size: 10px; text-shadow: 0 1px 2px rgba(0,0,0,0.8);">Bullish</span><span style="color: #f1f5f9; font-weight: 600; font-size: 11px; text-shadow: 0 1px 2px rgba(0,0,0,0.8);">${data.bullish}</span></div>`);
         }
         if (visibleMetricsRef.current.has('bearish_mentions')) {
-          metrics.push(`<div style="display: flex; align-items: center; gap: 6px; padding: 2px 0;"><span style="color: ${SENTIMENT_COLORS.bearish}; font-size: 12px; filter: drop-shadow(0 0 2px rgba(239, 68, 68, 0.5));">â—</span><span style="color: #cbd5e1; min-width: 75px; font-size: 10px; text-shadow: 0 1px 2px rgba(0,0,0,0.8);">Bearish</span><span style="color: #f1f5f9; font-weight: 600; font-size: 11px; text-shadow: 0 1px 2px rgba(0,0,0,0.8);">${data.bearish}</span></div>`);
+          metrics.push(`<div style="display: flex; align-items: center; gap: 6px; padding: 2px 0;"><span style="color: ${SENTIMENT_COLORS.bearish}; font-size: 12px; filter: drop-shadow(0 0 2px rgba(239, 68, 68, 0.5));">&bull;</span><span style="color: #cbd5e1; min-width: 75px; font-size: 10px; text-shadow: 0 1px 2px rgba(0,0,0,0.8);">Bearish</span><span style="color: #f1f5f9; font-weight: 600; font-size: 11px; text-shadow: 0 1px 2px rgba(0,0,0,0.8);">${data.bearish}</span></div>`);
         }
         if (visibleMetricsRef.current.has('neutral_mentions')) {
-          metrics.push(`<div style="display: flex; align-items: center; gap: 6px; padding: 2px 0;"><span style="color: ${SENTIMENT_COLORS.neutral}; font-size: 12px; filter: drop-shadow(0 0 2px rgba(255, 215, 0, 0.5));">â—</span><span style="color: #cbd5e1; min-width: 75px; font-size: 10px; text-shadow: 0 1px 2px rgba(0,0,0,0.8);">Neutral</span><span style="color: #f1f5f9; font-weight: 600; font-size: 11px; text-shadow: 0 1px 2px rgba(0,0,0,0.8);">${data.neutral}</span></div>`);
+          metrics.push(`<div style="display: flex; align-items: center; gap: 6px; padding: 2px 0;"><span style="color: ${SENTIMENT_COLORS.neutral}; font-size: 12px; filter: drop-shadow(0 0 2px rgba(255, 215, 0, 0.5));">&bull;</span><span style="color: #cbd5e1; min-width: 75px; font-size: 10px; text-shadow: 0 1px 2px rgba(0,0,0,0.8);">Neutral</span><span style="color: #f1f5f9; font-weight: 600; font-size: 11px; text-shadow: 0 1px 2px rgba(0,0,0,0.8);">${data.neutral}</span></div>`);
         }
         if (visibleMetricsRef.current.has('bullish_percentage') && data.bullishPercentage !== null) {
-          metrics.push(`<div style="display: flex; align-items: center; gap: 6px; padding: 2px 0;"><span style="color: ${SENTIMENT_COLORS.confidence}; font-size: 12px; filter: drop-shadow(0 0 2px rgba(168, 85, 247, 0.5));">â—</span><span style="color: #cbd5e1; min-width: 75px; font-size: 10px; text-shadow: 0 1px 2px rgba(0,0,0,0.8);">Sentiment %</span><span style="color: #f1f5f9; font-weight: 600; font-size: 11px; text-shadow: 0 1px 2px rgba(0,0,0,0.8);">${data.bullishPercentage.toFixed(1)}%</span></div>`);
+          metrics.push(`<div style="display: flex; align-items: center; gap: 6px; padding: 2px 0;"><span style="color: ${SENTIMENT_COLORS.confidence}; font-size: 12px; filter: drop-shadow(0 0 2px rgba(168, 85, 247, 0.5));">&bull;</span><span style="color: #cbd5e1; min-width: 75px; font-size: 10px; text-shadow: 0 1px 2px rgba(0,0,0,0.8);">Sentiment %</span><span style="color: #f1f5f9; font-weight: 600; font-size: 11px; text-shadow: 0 1px 2px rgba(0,0,0,0.8);">${data.bullishPercentage.toFixed(1)}%</span></div>`);
         }
-        if (visibleMetricsRef.current.has('price') && data.price) {
-          metrics.push(`<div style="display: flex; align-items: center; gap: 6px; padding: 2px 0;"><span style="color: ${SENTIMENT_COLORS.price}; font-size: 12px; filter: drop-shadow(0 0 2px rgba(59, 130, 246, 0.5));">â—</span><span style="color: #cbd5e1; min-width: 75px; font-size: 10px; text-shadow: 0 1px 2px rgba(0,0,0,0.8);">Price</span><span style="color: #f1f5f9; font-weight: 600; font-size: 11px; text-shadow: 0 1px 2px rgba(0,0,0,0.8);">$${data.price.toFixed(2)}</span></div>`);
+        if (visibleMetricsRef.current.has('price') && data.price != null) {
+          metrics.push(`<div style="display: flex; align-items: center; gap: 6px; padding: 2px 0;"><span style="color: ${SENTIMENT_COLORS.price}; font-size: 12px; filter: drop-shadow(0 0 2px rgba(59, 130, 246, 0.5));">&bull;</span><span style="color: #cbd5e1; min-width: 75px; font-size: 10px; text-shadow: 0 1px 2px rgba(0,0,0,0.8);">Price</span><span style="color: #f1f5f9; font-weight: 600; font-size: 11px; text-shadow: 0 1px 2px rgba(0,0,0,0.8);">$${data.price.toFixed(2)}</span></div>`);
         }
         if (visibleMetricsRef.current.has('ai_score') && data.aiConfidence !== null) {
-          metrics.push(`<div style="display: flex; align-items: center; gap: 6px; padding: 2px 0;"><span style="color: #f59e0b; font-size: 12px; filter: drop-shadow(0 0 2px rgba(245, 158, 11, 0.5));">â—</span><span style="color: #cbd5e1; min-width: 75px; font-size: 10px; text-shadow: 0 1px 2px rgba(0,0,0,0.8);">AI Confidence</span><span style="color: #f1f5f9; font-weight: 600; font-size: 11px; text-shadow: 0 1px 2px rgba(0,0,0,0.8);">${data.aiConfidence.toFixed(1)}</span></div>`);
+          metrics.push(`<div style="display: flex; align-items: center; gap: 6px; padding: 2px 0;"><span style="color: #f59e0b; font-size: 12px; filter: drop-shadow(0 0 2px rgba(245, 158, 11, 0.5));">&bull;</span><span style="color: #cbd5e1; min-width: 75px; font-size: 10px; text-shadow: 0 1px 2px rgba(0,0,0,0.8);">AI Confidence</span><span style="color: #f1f5f9; font-weight: 600; font-size: 11px; text-shadow: 0 1px 2px rgba(0,0,0,0.8);">${data.aiConfidence.toFixed(1)}</span></div>`);
         }
         
         html += metrics.join('');
@@ -937,7 +914,7 @@ export function AdvancedMetricsChart({
             <div>
               <CardTitle className="text-base">Sentiment Analysis</CardTitle>
               <div className="text-xs text-slate-400 mt-1">
-                Raw: {debugInfo.rawCount} pts ({debugInfo.rawInterval}) | Agg: {debugInfo.aggCount} pts @ {timeWindow} (factor {debugInfo.factor}x)
+                {selectedTickers.length === 1 ? selectedTickers[0] : `${selectedTickers.length} tickers`} at {timeWindow} intervals
               </div>
             </div>
           </div>
@@ -977,13 +954,13 @@ export function AdvancedMetricsChart({
       <CardContent className="pt-3">
         <div className="mb-4 flex flex-wrap gap-2">
           {[
-            { key: 'total_mentions', label: 'ðŸ“ˆ Total', color: '#06b6d4', bg: 'rgba(6, 182, 212, 0.2)', border: 'rgba(6, 182, 212, 0.4)' },
-            { key: 'bullish_mentions', label: 'ðŸŸ¢ Bullish', color: SENTIMENT_COLORS.bullish, bg: 'rgba(16, 185, 129, 0.2)', border: 'rgba(16, 185, 129, 0.4)' },
-            { key: 'bearish_mentions', label: 'ðŸ”´ Bearish', color: SENTIMENT_COLORS.bearish, bg: 'rgba(239, 68, 68, 0.2)', border: 'rgba(239, 68, 68, 0.4)' },
-            { key: 'neutral_mentions', label: 'âšª Neutral', color: SENTIMENT_COLORS.neutral, bg: 'rgba(255, 215, 0, 0.2)', border: 'rgba(255, 215, 0, 0.4)' },
-            { key: 'bullish_percentage', label: 'ðŸ“Š Sentiment %', color: SENTIMENT_COLORS.confidence, bg: 'rgba(168, 85, 247, 0.2)', border: 'rgba(168, 85, 247, 0.4)' },
-            { key: 'ai_score', label: 'ðŸ¤– AI Score', color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.2)', border: 'rgba(245, 158, 11, 0.4)' },
-            { key: 'price', label: 'ðŸ’² Price', color: SENTIMENT_COLORS.price, bg: 'rgba(59, 130, 246, 0.2)', border: 'rgba(59, 130, 246, 0.4)' },
+            { key: 'total_mentions', label: 'Total', color: '#06b6d4', bg: 'rgba(6, 182, 212, 0.2)', border: 'rgba(6, 182, 212, 0.4)' },
+            { key: 'bullish_mentions', label: 'Bullish', color: SENTIMENT_COLORS.bullish, bg: 'rgba(16, 185, 129, 0.2)', border: 'rgba(16, 185, 129, 0.4)' },
+            { key: 'bearish_mentions', label: 'Bearish', color: SENTIMENT_COLORS.bearish, bg: 'rgba(239, 68, 68, 0.2)', border: 'rgba(239, 68, 68, 0.4)' },
+            { key: 'neutral_mentions', label: 'Neutral', color: SENTIMENT_COLORS.neutral, bg: 'rgba(255, 215, 0, 0.2)', border: 'rgba(255, 215, 0, 0.4)' },
+            { key: 'bullish_percentage', label: 'Sentiment %', color: SENTIMENT_COLORS.confidence, bg: 'rgba(168, 85, 247, 0.2)', border: 'rgba(168, 85, 247, 0.4)' },
+            { key: 'ai_score', label: 'AI Score', color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.2)', border: 'rgba(245, 158, 11, 0.4)' },
+            { key: 'price', label: 'Price', color: SENTIMENT_COLORS.price, bg: 'rgba(59, 130, 246, 0.2)', border: 'rgba(59, 130, 246, 0.4)' },
           ].map(({ key, label, color, bg, border }) => {
             const isActive = visibleMetrics.has(key);
             const currentStyle = metricStyles.get(key) || 'solid';

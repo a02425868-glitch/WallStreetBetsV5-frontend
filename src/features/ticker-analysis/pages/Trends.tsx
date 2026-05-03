@@ -31,7 +31,7 @@ export default function Trends() {
               Trends & Analytics
             </h1>
             <p className="text-muted-foreground text-sm pl-4">
-              Analyze ticker metrics over time â€” select a ticker, time window, and metrics
+              Analyze ticker metrics over time - select a ticker, time window, and metrics
             </p>
           </div>
           <Button

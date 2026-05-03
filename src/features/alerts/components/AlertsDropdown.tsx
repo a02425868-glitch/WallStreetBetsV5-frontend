@@ -87,7 +87,7 @@ export function AlertsDropdown() {
         const directionText = thresholdDirection === 'above' ? 'above' : 'below';
         const msg = `${alert.ticker} ${metricLabel} is ${value} (${directionText} ${alert.threshold})`;
 
-        toast({ title: `ðŸ”” Alert: ${alert.ticker}`, description: msg });
+        toast({ title: `Alert: ${alert.ticker}`, description: msg });
         sendBrowserNotification(`Alert: ${alert.ticker}`, msg);
         setTriggeredCount(c => c + 1);
 
@@ -151,7 +151,7 @@ export function AlertsDropdown() {
         onSuccess: () => {
           toast({
             title: 'Alert created',
-            description: `${selectedTicker} â€” ${selectedMetric.label} ${thresholdDirection} ${val}`,
+            description: `${selectedTicker} - ${selectedMetric.label} ${thresholdDirection} ${val}`,
           });
           resetForm();
         },
@@ -306,7 +306,7 @@ export function AlertsDropdown() {
                     </Badge>
                   </div>
                   <span className="text-xs text-muted-foreground mt-0.5 block">
-                    {direction === 'above' ? 'Above' : 'Below'} {alert.threshold ?? 'â€”'}{metricOpt ? ` ${metricOpt.unit}` : ''}
+                    {direction === 'above' ? 'Above' : 'Below'} {alert.threshold ?? '-'}{metricOpt ? ` ${metricOpt.unit}` : ''}
                   </span>
                 </div>
                 <Button

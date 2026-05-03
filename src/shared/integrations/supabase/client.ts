@@ -7,11 +7,6 @@ const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || impor
 
 if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
   console.error('Supabase configuration missing. Set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY (or VITE_SUPABASE_ANON_KEY).');
-  if (typeof window !== 'undefined') {
-    console.log('Debug: VITE_SUPABASE_URL =', SUPABASE_URL ? '✓ set' : '✗ missing');
-    console.log('Debug: VITE_SUPABASE_PUBLISHABLE_KEY =', import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ? '✓ set' : '✗ missing');
-    console.log('Debug: VITE_SUPABASE_ANON_KEY =', import.meta.env.VITE_SUPABASE_ANON_KEY ? '✓ set' : '✗ missing');
-  }
 }
 
 // Import the supabase client like this:

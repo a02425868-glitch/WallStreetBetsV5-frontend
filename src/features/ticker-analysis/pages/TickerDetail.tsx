@@ -108,6 +108,7 @@ export default function TickerDetail() {
 
   const bullBearRatio = Number(data.bull_bear_ratio ?? 0);
   const isBullish = bullBearRatio >= 1;
+  const lastUpdatedAt = data.timestamp ? new Date(data.timestamp) : null;
 
   return (
     <DashboardLayout>
@@ -127,7 +128,9 @@ export default function TickerDetail() {
               </h1>
               <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
                 <Clock className="h-3 w-3" />
-                Last update: {formatDistanceToNow(new Date(), { addSuffix: true })}
+                {lastUpdatedAt && !Number.isNaN(lastUpdatedAt.getTime())
+                  ? `Last update: ${formatDistanceToNow(lastUpdatedAt, { addSuffix: true })}`
+                  : 'Last update unavailable'}
               </p>
             </div>
           </div>
@@ -149,7 +152,7 @@ export default function TickerDetail() {
         </div>
 
         {/* Stock Price (if available) */}
-        {data.price && (
+        {data.price != null && (
           <Card className="bg-card border-border animate-fade-in" style={{ animationDelay: '75ms' }}>
             <CardContent className="p-4 flex items-center justify-between">
               <div>
@@ -248,7 +251,7 @@ export default function TickerDetail() {
           <CardHeader className="pb-3 border-b border-border/50">
             <CardTitle className="flex items-center gap-2 text-base">
               <Activity className="h-4 w-4 text-primary animate-pulse" />
-              Live Feed â€” ${ticker}
+              Live Feed - ${ticker}
               <div className="w-2 h-2 rounded-full bg-terminal-green animate-pulse shadow-lg shadow-terminal-green/30 ml-1" />
             </CardTitle>
           </CardHeader>

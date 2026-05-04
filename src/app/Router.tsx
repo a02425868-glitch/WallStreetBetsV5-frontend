@@ -4,6 +4,7 @@ import TickerDetail from '@/features/ticker-analysis/pages/TickerDetail';
 import LiveFeed from '@/features/live-feed/pages/LiveFeed';
 import Trends from '@/features/ticker-analysis/pages/Trends';
 import Profile from '@/features/profile/pages/Profile';
+import Admin from '@/features/admin/pages/Admin';
 import Auth from '@/features/auth/pages/Auth';
 import VerifyEmail from '@/features/auth/pages/VerifyEmail';
 import NotFound from '@/features/errors/pages/NotFound';
@@ -52,6 +53,14 @@ export function Router() {
           element={
             <ProtectedRoute>
               <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute>
+              <Admin />
             </ProtectedRoute>
           }
         />

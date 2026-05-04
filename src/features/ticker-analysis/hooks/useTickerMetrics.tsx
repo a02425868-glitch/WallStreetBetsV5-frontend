@@ -25,7 +25,7 @@ export const TIMEFRAME_HOURS_BY_RANGE: Record<TimeframeRange, number> = {
 
 const DEFAULT_RANGE_HOURS = 720;
 
-interface TrendSourceWindow {
+export interface TrendSourceWindow {
   sourceInterval: IntervalWindow;
   lookbackHours: number;
 }
@@ -40,6 +40,10 @@ const TREND_SOURCE_BY_WINDOW: Record<IntervalWindow, TrendSourceWindow> = {
   '6h': { sourceInterval: '30m', lookbackHours: 336 },
   '12h': { sourceInterval: '1h', lookbackHours: DEFAULT_RANGE_HOURS },
 };
+
+export function getTrendSourceWindow(intervalWindow: IntervalWindow): TrendSourceWindow {
+  return TREND_SOURCE_BY_WINDOW[intervalWindow];
+}
 
 function mapTrendRow(row: TrendsMetricRpcRow): TrendsDataRow {
   return {
@@ -63,7 +67,7 @@ export function useTickerMetrics(tickers: string[], intervalWindow: IntervalWind
       return {} as Record<string, TrendsMetricsRow[]>;
     }
 
-    const sourceWindow = TREND_SOURCE_BY_WINDOW[intervalWindow];
+    const sourceWindow = getTrendSourceWindow(intervalWindow);
     const rows = await fetchTrendsMetrics({
       tickers,
       interval: sourceWindow.sourceInterval,

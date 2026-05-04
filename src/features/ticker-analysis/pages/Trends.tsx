@@ -77,6 +77,14 @@ export default function Trends() {
             </CardContent>
           </Card>
         )}
+
+        {!selectedTicker && !tickersLoading && availableTickers.length === 0 && (
+          <Card className="bg-card border-border">
+            <CardContent className="py-16 text-center text-muted-foreground">
+              No tickers currently exceed the production tracking rule: more than 100 mentions in the last 24 hours.
+            </CardContent>
+          </Card>
+        )}
       </div>
     </DashboardLayout>
   );

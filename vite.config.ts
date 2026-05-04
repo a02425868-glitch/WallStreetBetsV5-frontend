@@ -1,6 +1,17 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
+import { execSync } from 'child_process'
+
+function optionalGitSha() {
+  try {
+    return execSync('git rev-parse --short HEAD', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim()
+  } catch {
+    return 'unknown'
+  }
+}
+
+const buildTime = new Date().toISOString()
 
 export default defineConfig({
   plugins: [react()],
@@ -24,6 +35,15 @@ export default defineConfig({
     ),
     'import.meta.env.VITE_SUPABASE_ANON_KEY': JSON.stringify(
       process.env.VITE_SUPABASE_ANON_KEY || ''
+    ),
+    'import.meta.env.VITE_ADMIN_EMAILS': JSON.stringify(
+      process.env.VITE_ADMIN_EMAILS || ''
+    ),
+    'import.meta.env.VITE_COMMIT_SHA': JSON.stringify(
+      process.env.CF_PAGES_COMMIT_SHA || process.env.VITE_COMMIT_SHA || optionalGitSha()
+    ),
+    'import.meta.env.VITE_BUILD_TIME': JSON.stringify(
+      process.env.VITE_BUILD_TIME || buildTime
     ),
   },
 })

@@ -7,10 +7,12 @@ import {
   Activity, 
   TrendingUp, 
   LogOut,
-  Zap
+  Zap,
+  ShieldCheck,
 } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import { AlertsDropdown } from '@/features/alerts/components/AlertsDropdown';
+import { isAdminUser } from '@/features/admin/lib/adminAccess';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -25,6 +27,9 @@ const navItems = [
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { signOut, user } = useAuth();
   const location = useLocation();
+  const visibleNavItems = isAdminUser(user)
+    ? [...navItems, { path: '/admin', label: 'Admin', icon: ShieldCheck }]
+    : navItems;
 
   return (
     <div className="min-h-screen bg-background flex flex-col relative">
@@ -46,7 +51,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
           {/* Navigation */}
           <nav className="hidden md:flex items-center gap-1 bg-muted/30 rounded-lg p-1">
-            {navItems.map((item) => {
+            {visibleNavItems.map((item) => {
               const isActive = location.pathname === item.path;
               return (
                 <Link
@@ -89,7 +94,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
         {/* Mobile navigation */}
         <nav className="md:hidden flex items-center gap-1 px-4 pb-3 overflow-x-auto scrollbar-terminal">
-          {navItems.map((item) => {
+          {visibleNavItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (
               <Link

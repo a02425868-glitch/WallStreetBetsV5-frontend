@@ -71,12 +71,18 @@ export function StatsOverview() {
           </CardHeader>
           <CardContent>
             <div className="space-y-1.5 text-xs">
-              {top3Trending.map((ticker, idx) => (
-                <div key={ticker.ticker} className="flex items-center justify-between">
-                  <span className="text-muted-foreground">#{idx + 1} {ticker.ticker}</span>
-                  <span className="font-mono font-bold text-terminal-cyan">{ticker.mentionCount.toLocaleString()}</span>
-                </div>
-              ))}
+              {top3Trending.length === 0 ? (
+                <p className="text-muted-foreground">
+                  No tickers currently exceed the tracked threshold.
+                </p>
+              ) : (
+                top3Trending.map((ticker, idx) => (
+                  <div key={ticker.ticker} className="flex items-center justify-between">
+                    <span className="text-muted-foreground">#{idx + 1} {ticker.ticker}</span>
+                    <span className="font-mono font-bold text-terminal-cyan">{ticker.mentionCount.toLocaleString()}</span>
+                  </div>
+                ))
+              )}
             </div>
           </CardContent>
         </Card>

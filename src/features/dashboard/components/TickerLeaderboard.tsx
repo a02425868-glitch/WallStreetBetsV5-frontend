@@ -333,7 +333,7 @@ export function TickerLeaderboard() {
                     colSpan={selectedColumns.length + (showPrice ? 3 : 2)}
                     className="text-center py-8 text-muted-foreground"
                   >
-                    No tickers found. Data will appear once your Python pipeline processes Reddit posts.
+                    No tickers currently exceed the production tracking rule: more than 100 mentions in the last 24 hours.
                   </TableCell>
                 </TableRow>
               ) : (

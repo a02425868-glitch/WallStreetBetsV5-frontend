@@ -90,6 +90,12 @@ export interface TickerDetailOverviewRow {
   updated_at_utc: string | null;
 }
 
+export interface AdminStatusRow {
+  section: string;
+  status: 'ok' | 'warn' | 'error' | 'unknown' | string;
+  details: Record<string, unknown>;
+}
+
 function sortByDateDesc<T>(rows: T[], key: keyof T): T[] {
   return [...rows].sort((a, b) => {
     const aValue = String(a[key] ?? '');
@@ -138,4 +144,8 @@ export async function fetchLiveFeed(params: {
     p_ticker: params.ticker ?? null,
   });
   return sortByDateDesc(data, 'created_utc');
+}
+
+export async function fetchAdminSystemStatus(): Promise<AdminStatusRow[]> {
+  return rpcRows<AdminStatusRow>('admin_system_status');
 }

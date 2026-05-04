@@ -3,6 +3,8 @@ import react from '@vitejs/plugin-react'
 import path from 'path'
 import { execSync } from 'child_process'
 
+process.env.BROWSERSLIST_IGNORE_OLD_DATA ??= 'true'
+
 function optionalGitSha() {
   try {
     return execSync('git rev-parse --short HEAD', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim()
@@ -23,6 +25,26 @@ export default defineConfig({
   server: {
     port: 5173,
     strictPort: false,
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          react: ['react', 'react-dom', 'react-router-dom'],
+          supabase: ['@supabase/supabase-js'],
+          charts: ['recharts', 'lightweight-charts'],
+          query: ['@tanstack/react-query'],
+          ui: [
+            '@radix-ui/react-dialog',
+            '@radix-ui/react-dropdown-menu',
+            '@radix-ui/react-popover',
+            '@radix-ui/react-select',
+            '@radix-ui/react-tooltip',
+            'lucide-react',
+          ],
+        },
+      },
+    },
   },
   define: {
     // Inject Supabase environment variables at build time

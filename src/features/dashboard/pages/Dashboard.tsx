@@ -4,6 +4,7 @@ import { DashboardLayout } from '@/features/dashboard/components/DashboardLayout
 import { StatsOverview } from '@/features/dashboard/components/StatsOverview';
 import { TickerLeaderboard } from '@/features/dashboard/components/TickerLeaderboard';
 import { useTickerData } from '@/features/dashboard/hooks/useTickerData';
+import { LiveFeedCard } from '@/features/live-feed/components/LiveFeedCard';
 import { Clock } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -41,6 +42,10 @@ export default function Dashboard() {
 
         <div className="animate-fade-in" style={{ animationDelay: '100ms' }}>
           <StatsOverview />
+        </div>
+
+        <div className="animate-fade-in" style={{ animationDelay: '150ms' }}>
+          <LiveFeedCard />
         </div>
         
         <div className="animate-fade-in" style={{ animationDelay: '200ms' }}>

@@ -91,8 +91,8 @@ export function LiveFeedCard({ fullPage = false }: LiveFeedCardProps) {
 
       <CardContent className="p-0">
         {items.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            No activity yet. Data will appear once your Python pipeline processes Reddit posts.
+          <div className="text-center py-8 px-4 text-muted-foreground">
+            No recent Reddit activity is available from production Supabase right now.
           </div>
         ) : fullPage ? (
           <div className="px-4 pb-4" ref={scrollRef}>
